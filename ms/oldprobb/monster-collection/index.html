@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>怪物蒐集</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --gold: #BF953F;
+            --gold-completed: #bf943f3b;
+            --light-gold: #FCF6BA;
+            --text: #eee;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            user-select: none;
+            padding-bottom: 80px;
+        }
+
+        h1,
+        .mask-manager,
+        .controls,
+        .hint,
+        .container {
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+            text-shadow: 0 0 30px rgba(251, 245, 183, 0.3);
+            margin: 0 0 10px 0;
+            display: inline-block;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .mask-manager {
+            background: #222;
+            border: 1px solid #444;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .mask-input-group {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+
+        .mask-input {
+            flex: 1;
+            background: #000;
+            border: 1px solid var(--gold);
+            color: var(--light-gold);
+            padding: 8px 10px;
+            font-family: monospace;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .region-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            color: var(--gold);
+            margin: 10px 0 10px 0;
+            border-left: 3px solid var(--gold);
+            padding: 5px 12px;
+            text-align: left;
+            background: rgba(191, 149, 63, 0.1);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .region-header.completed {
+            background: rgba(139, 135, 126, 0.1);
+            color: var(--gold-completed);
+            border-left: 3px solid var(--gold-completed);
+        }
+
+        .region-header:hover {
+            background: rgba(191, 149, 63, 0.3);
+        }
+
+        .toggle-icon {
+            display: inline-block;
+            margin-right: 8px;
+            transition: transform 0.3s;
+        }
+
+        .region-header.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .region-header.collapsed+.monster-grid {
+            display: none;
+        }
+
+        .region-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            background: transparent;
+            border: 1px solid #333;
+            color: #666;
+            font-size: 10px;
+            padding: 2px 6px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .btn-sm:hover {
+            border-color: var(--gold);
+            color: var(--light-gold);
+        }
+
+        .monster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .monster-node {
+            background: rgba(191, 149, 63, 0.05);
+            aspect-ratio: 1/1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid var(--gold);
+            transition: 0.2s;
+            border-radius: 4px;
+        }
+
+        .monster-img {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            transition: 0.3s;
+        }
+
+        .monster-name {
+            font-size: 10px;
+            margin-top: 2px;
+            color: var(--light-gold);
+        }
+
+        .monster-node:hover {
+            background: rgba(191, 149, 63, 0.8);
+        }
+
+        .monster-node.excluded:hover {
+            background: #353535;
+            border-color: #252525;
+        }
+
+        .monster-node.excluded {
+            background: #0f0f0f;
+            border-color: #252525;
+        }
+
+        .monster-node.excluded .monster-img {
+            filter: grayscale(100%) brightness(0.8);
+            opacity: 0.1;
+        }
+
+        .monster-node.excluded:hover .monster-img {
+            filter: grayscale(20%);
+            opacity: 0.6;
+        }
+
+        .monster-node.excluded .monster-name {
+            color: #444;
+        }
+
+        .grid-break {
+            display: none;
+        }
+
+        body.enable-newline .grid-break {
+            display: block;
+            grid-column: 1 / -1;
+        }
+
+        body.hide-collected .monster-node.excluded {
+            display: none;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 120px;
+            background: rgba(34, 34, 34, 0.95);
+            border: 1px solid var(--gold);
+            padding: 10px 15px;
+            border-radius: 6px;
+            z-index: 1000;
+            transition: transform 0.3s, opacity 0.3s;
+            transform: translateY(150%);
+            opacity: 0;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-title {
+            font-size: 13px;
+            color: #55ff55;
+            font-weight: bold;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: #222;
+            border: 1px solid var(--gold);
+            color: var(--light-gold);
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--gold);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .floating-gif {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            z-index: 9999;
+        }
+
+        .floating-gif img {
+            image-rendering: pixelated;
+            cursor: pointer;
+            height: auto;
+            width: 100%;
+            content: url("../../images/stand.gif");
+        }
+
+        .floating-gif img:hover {
+            content: url("../../images/move.gif");
+        }
+
+        .floating-gif img:active {
+            content: url("../../images/hit1.gif");
+        }
+
+        /* 訊息框 */
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            margin-bottom: 8px;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            font-size: 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+
+            opacity: 0;
+            transform: translateY(5px);
+            transition: 0.2s;
+            pointer-events: none;
+        }
+
+        .floating-gif:hover .tooltip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>
+        技術谷怪物蒐集
+    </h1>
+
+    <div class="floating-gif">
+        <img src="../../images/stand.gif"">
+        <div class="tooltip">Made By 🩷 砂兔</div>
+    </div>
+
+    <div class="mask-manager">
+        <div style="font-size: 24px; color: var(--gold);">蒐集存檔碼</div>
+        <div style="font-size: 16px; color: #AAA; ">( 存檔碼只會存在本地瀏覽器中不會跨裝置，請隨時複製儲存 )</div>
+        <div class="mask-input-group">
+            <input type="text" id="maskInput" class="mask-input" placeholder="代碼自動更新中...">
+            <button class="btn" onclick="copyMask()" style="padding: 5px 12px;">複製</button>
+            <button class="btn" onclick="loadManualMask()" style="padding: 5px 12px;">載入</button>
+        </div>
+    </div>
+
+    <div class="hint">
+        [ <b>Ctrl+ Z</b> 復原 ] [ <b>Ctrl+ Y</b> 重做 ] [ <b>Ctrl+ C</b> 快速複製存檔代碼 ]<br>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="setAllRegionsCollapse()">全展開收合</button>
+        <button class="btn" id="newlineBtn" onclick="toggleNewline()">分類模式</button>
+        <button class="btn" id="hideCollectedBtn" onclick="toggleHideCollected()">隱藏已蒐集</button>
+    </div>
+
+    <div id="container" class="container"></div>
+
+    <div id="toast">
+        <div class="toast-title">已儲存到本地瀏覽器</div>
+    </div>
+
+    <script type="text/javascript" src="database.js"></script>
+
+    <script>
+        let flatRegistry = [];
+        let historyStack = [];
+        let redoStack = [];
+        let toastTimer;
+        let regionMap = [];
+
+        const containerEl = document.getElementById('container');
+        const maskInput = document.getElementById('maskInput');
+        const toast = document.getElementById('toast');
+
+        // --- Cookie 管理 ---
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i].trim();
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // --- 壓縮與解壓 ---
+        const pack = b => {
+            const u8 = new Uint8Array(Math.ceil(b.length / 8));
+            b.forEach((v, i) => { if (v === "1") u8[i >> 3] |= (1 << (i % 8)); });
+            // 在 btoa 產生的字串前後加上 ` 符號
+            const base64 = btoa(String.fromCharCode.apply(null, u8)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            return `\`${base64}\``;
+        };
+
+        const unpack = (s, len) => {
+            if (!s) return "0".repeat(len);
+
+            // 移除前後可能存在的 ` 符號 (支援有或沒有符號的載入)
+            let cleanStr = s.trim();
+            if (cleanStr.startsWith('`') && cleanStr.endsWith('`')) {
+                cleanStr = cleanStr.slice(1, -1);
+            }
+
+            try {
+                const b = atob(cleanStr.replace(/-/g, '+').replace(/_/g, '/'));
+                const u8 = new Uint8Array(b.length);
+                for (let i = 0; i < b.length; i++) u8[i] = b.charCodeAt(i);
+                let res = "";
+                for (let i = 0; i < len; i++) res += (u8[i >> 3] & (1 << (i % 8))) ? "1" : "0";
+                return res.slice(0, len);
+            } catch (e) {
+                console.error("解碼失敗:", e);
+                return "0".repeat(len);
+            }
+        };
+
+        // --- 核心邏輯 ---
+        function getCurrentExcludedState() {
+            return flatRegistry.map((_, i) => {
+                const el = document.getElementById(`n-${i}`);
+                return (el && el.classList.contains('excluded')) ? "1" : "0";
+            }).join("");
+        }
+
+        function applyState(bits, isSync = true) {
+            bits.split("").forEach((v, i) => {
+                const el = document.getElementById(`n-${i}`);
+                if (el) v === "1" ? el.classList.add('excluded') : el.classList.remove('excluded');
+            });
+            if (isSync) syncStorage(bits);
+            updateAllRegionCounts();
+        }
+
+        function syncStorage(bits) {
+            const compressed = pack(bits.split(""));
+            setCookie('monster_mask', compressed, 365);
+            maskInput.value = compressed;
+            clearTimeout(toastTimer);
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 2000);
+            toast.querySelector('.toast-title').textContent = '已儲存到本地瀏覽器';
+        }
+
+        function recordHistory() {
+            const state = getCurrentExcludedState();
+            if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== state) {
+                historyStack.push(state);
+                redoStack = [];
+            }
+        }
+
+        function toggleNode(idx) {
+            recordHistory();
+            document.getElementById(`n-${idx}`).classList.toggle('excluded');
+            syncStorage(getCurrentExcludedState());
+            updateAllRegionCounts();
+            recordHistory(); // 完成操作後紀錄
+        }
+
+        function setRegionState(start, count, shouldExclude, event) {
+            if (event) event.stopPropagation();
+            recordHistory();
+            for (let i = start; i < start + count; i++) {
+                const el = document.getElementById(`n-${i}`);
+                if (el) shouldExclude ? el.classList.add('excluded') : el.classList.remove('excluded');
+            }
+            syncStorage(getCurrentExcludedState());
+            updateAllRegionCounts();
+            recordHistory();
+        }
+
+        // --- 區域收合 ---
+        function toggleRegionCollapse(regionName, headerEl) {
+            const isCollapsed = headerEl.classList.toggle('collapsed');
+            setCookie(`collapse_${regionName}`, isCollapsed ? '1' : '0', 365);
+        }
+
+        let shouldCollapse = true;
+        function setAllRegionsCollapse() {
+            regionMap.forEach(reg => {
+                shouldCollapse ? reg.headerEl.classList.add('collapsed') : reg.headerEl.classList.remove('collapsed');
+                setCookie(`collapse_${reg.name}`, shouldCollapse ? '1' : '0', 365);
+            });
+            shouldCollapse = !shouldCollapse;
+        }
+
+        function updateAllRegionCounts() {
+            regionMap.forEach(reg => {
+                let done = 0;
+                for (let i = reg.start; i < reg.start + reg.count; i++) {
+                    const el = document.getElementById(`n-${i}`);
+                    if (el && !el.classList.contains('excluded')) done++;
+                }
+                done === 0 ? reg.headerEl.classList.add('completed') : reg.headerEl.classList.remove('completed');
+                const span = reg.headerEl.querySelector('.region-title');
+                if (span) span.textContent = `${reg.name} ( ${done} / ${reg.count} )`;
+            });
+        }
+
+        // --- 初始化 ---
+        function init() {
+            if (typeof RAW_DATA === 'undefined') return;
+
+            const isNewline = getCookie('monster_newline') === '1';
+            document.body.classList.toggle('enable-newline', isNewline);
+            updateNewlineUI(isNewline);
+
+            const isHide = getCookie('monster_hide') === '1';
+            document.body.classList.toggle('hide-collected', isHide);
+            updateHideUI(isHide);
+
+            let itemOffset = 0;
+            containerEl.innerHTML = '';
+            regionMap = [];
+
+            RAW_DATA.forEach((reg) => {
+                const isCollapsed = getCookie(`collapse_${reg.region}`) === '1';
+                const header = document.createElement('div');
+                header.className = `region-header ${isCollapsed ? 'collapsed' : ''}`;
+                const startIndex = itemOffset;
+                const count = reg.items.length;
+
+                header.innerHTML = `
+                    <div><span class="toggle-icon">▼</span><span class="region-title">${reg.region}</span></div>
+                    <div class="region-controls">
+                        <button class="btn-sm" onclick="setRegionState(${startIndex}, ${count}, false, event)">區域全開</button>
+                        <button class="btn-sm" onclick="setRegionState(${startIndex}, ${count}, true, event)">區域全關</button>
+                    </div>`;
+                header.onclick = () => toggleRegionCollapse(reg.region, header);
+                containerEl.appendChild(header);
+
+                const grid = document.createElement('div');
+                grid.className = 'monster-grid';
+                reg.items.forEach(item => {
+                    const idx = flatRegistry.length;
+                    flatRegistry.push(item);
+                    const node = document.createElement('div');
+                    node.className = 'monster-node';
+                    node.id = `n-${idx}`;
+                    node.innerHTML = `<img src="${item.img}" class="monster-img"><div class="monster-name">${item.name}</div>`;
+                    node.onclick = () => toggleNode(idx);
+                    grid.appendChild(node);
+                    itemOffset++;
+                    if (item.newline === true) {
+                        const b = document.createElement('div'); b.className = 'grid-break'; grid.appendChild(b);
+                    }
+                });
+                containerEl.appendChild(grid);
+                regionMap.push({ headerEl: header, start: startIndex, count: count, name: reg.region });
+            });
+
+            const m = getCookie('monster_mask');
+            const initialState = unpack(m, flatRegistry.length);
+            applyState(initialState, false);
+            historyStack.push(initialState);
+            maskInput.value = m || "";
+        }
+
+        // --- 快捷鍵與工具 ---
+        function copyMask() {
+            maskInput.select();
+            document.execCommand('copy');
+            clearTimeout(toastTimer);
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 2000);
+            toast.querySelector('.toast-title').textContent = '已複製存檔';
+        }
+
+        function loadManualMask() {
+            recordHistory();
+            applyState(unpack(maskInput.value.trim(), flatRegistry.length));
+            recordHistory();
+        }
+
+        function toggleNewline() {
+            const isEnabled = document.body.classList.toggle('enable-newline');
+            updateNewlineUI(isEnabled);
+            setCookie('monster_newline', isEnabled ? '1' : '0', 365);
+        }
+
+        function updateNewlineUI(isEnabled) {
+            const btn = document.getElementById('newlineBtn');
+            if (btn) btn.innerText = isEnabled ? '密集模式' : '分類模式';
+        }
+
+        function toggleHideCollected() {
+            const isHidden = document.body.classList.toggle('hide-collected');
+            updateHideUI(isHidden);
+            setCookie('monster_hide', isHidden ? '1' : '0', 365);
+        }
+
+        function updateHideUI(isHidden) {
+            const btn = document.getElementById('hideCollectedBtn');
+            if (btn) btn.innerText = isHidden ? '顯示已蒐集' : '隱藏已蒐集';
+        }
+
+        // 重點修正：快捷鍵監聽器
+        window.addEventListener('keydown', e => {
+            if (e.ctrlKey || e.metaKey) {
+                const key = e.key.toLowerCase();
+                if (key === 'z') {
+                    e.preventDefault();
+                    if (historyStack.length > 1) {
+                        redoStack.push(historyStack.pop());
+                        applyState(historyStack[historyStack.length - 1], true);
+                    }
+                } else if (key === 'y') {
+                    e.preventDefault();
+                    if (redoStack.length > 0) {
+                        const state = redoStack.pop();
+                        historyStack.push(state);
+                        applyState(state, true);
+                    }
+                } else if (key === 's') {
+                    e.preventDefault();
+                    syncStorage(getCurrentExcludedState());
+                } else if (key === 'c') {
+                    copyMask();
+                }
+            }
+        });
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>
