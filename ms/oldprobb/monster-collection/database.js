@@ -1460,7 +1460,7 @@ const RAW_DATA = [
         "img": "images/star_1-2.png"
       },
       {
-        "name": "?? 綠色本子卡",
+        "name": "葡萄味膠凍果汁卡",
         "img": "images/star_1-3.png",
         "newline": true
       },
