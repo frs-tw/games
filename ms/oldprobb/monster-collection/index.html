@@ -9,6 +9,7 @@
         :root {
             --bg: #0f0f0f;
             --gold: #BF953F;
+            --gold-on: #BF953F8C;
             --gold-completed: #bf943f3b;
             --light-gold: #FCF6BA;
             --text: #eee;
@@ -218,6 +219,10 @@
             display: none;
         }
 
+        body.hide-completed .region-header.completed {
+            display: none;
+        }
+
         #toast {
             position: fixed;
             bottom: 20px;
@@ -266,6 +271,11 @@
             font-size: 13px;
             border-radius: 4px;
             transition: 0.2s;
+        }
+
+        .btn.toggle-on {
+            background: var(--gold-on);
+            font-weight: bold;
         }
 
         .btn:hover {
@@ -332,7 +342,8 @@
 
     <div class="floating-gif">
         <img src="../../images/stand.gif"">
-        <div class="tooltip">Made By 🩷 砂兔</div>
+        <div class=" tooltip">Made By 🩷 砂兔
+    </div>
     </div>
 
     <div class="mask-manager">
@@ -350,9 +361,10 @@
     </div>
 
     <div class="controls">
-        <button class="btn" onclick="setAllRegionsCollapse()">全展開收合</button>
+        <button class="btn" onclick="setAllRegionsCollapse()">展開 / 收合</button>
         <button class="btn" id="newlineBtn" onclick="toggleNewline()">分類模式</button>
         <button class="btn" id="hideCollectedBtn" onclick="toggleHideCollected()">隱藏已蒐集</button>
+        <button class="btn" id="hideCompletedBtn" onclick="toggleHideCompleted()">隱藏完成區域</button>
     </div>
 
     <div id="container" class="container"></div>
@@ -517,6 +529,10 @@
             document.body.classList.toggle('hide-collected', isHide);
             updateHideUI(isHide);
 
+            const isHideCompleted = getCookie('monster_hide_completed') === '1';
+            document.body.classList.toggle('hide-completed', isHideCompleted);
+            updateHideCompletedUI(isHideCompleted);
+
             let itemOffset = 0;
             containerEl.innerHTML = '';
             regionMap = [];
@@ -588,7 +604,8 @@
 
         function updateNewlineUI(isEnabled) {
             const btn = document.getElementById('newlineBtn');
-            if (btn) btn.innerText = isEnabled ? '密集模式' : '分類模式';
+            btn.classList.toggle('toggle-on', isEnabled);
+            if (btn) btn.innerText = isEnabled ? '分類' : '密集';
         }
 
         function toggleHideCollected() {
@@ -597,9 +614,22 @@
             setCookie('monster_hide', isHidden ? '1' : '0', 365);
         }
 
+        function toggleHideCompleted() {
+            const isHidden = document.body.classList.toggle('hide-completed');
+            updateHideCompletedUI(isHidden);
+            setCookie('monster_hide_completed', isHidden ? '1' : '0', 365);
+        }
+
         function updateHideUI(isHidden) {
             const btn = document.getElementById('hideCollectedBtn');
-            if (btn) btn.innerText = isHidden ? '顯示已蒐集' : '隱藏已蒐集';
+            btn.classList.toggle('toggle-on', !isHidden);
+            if (btn) btn.innerText = isHidden ? '顯示已蒐集' : '顯示已蒐集';
+        }
+
+        function updateHideCompletedUI(isHidden) {
+            const btn = document.getElementById('hideCompletedBtn');
+            btn.classList.toggle('toggle-on', !isHidden);
+            if (btn) btn.innerText = isHidden ? '顯示已完成區域' : '顯示已完成區域';
         }
 
         // 重點修正：快捷鍵監聽器
