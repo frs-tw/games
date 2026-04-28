@@ -92,9 +92,9 @@
             align-items: center;
             font-size: 16px;
             color: var(--gold);
-            margin: 10px 0 10px 0;
             border-left: 3px solid var(--gold);
             padding: 5px 12px;
+            margin-bottom: 4px;
             text-align: left;
             background: rgba(191, 149, 63, 0.1);
             cursor: pointer;
@@ -125,6 +125,10 @@
             display: none;
         }
 
+        .region-block {
+            margin-bottom: 8px;
+        }
+
         .region-controls {
             display: flex;
             gap: 8px;
@@ -148,8 +152,11 @@
         .monster-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 2px;
-            margin-bottom: 20px;
+            gap: 0px 2px;
+        }
+
+        .monster-grid.completed {
+            display: none;
         }
 
         .monster-node {
@@ -434,19 +441,37 @@
             }
         };
 
-        // --- 核心邏輯 ---
         function getCurrentExcludedState() {
             return flatRegistry.map((_, i) => {
-                const el = document.getElementById(`n-${i}`);
-                return (el && el.classList.contains('excluded')) ? "1" : "0";
+                const els = document.querySelectorAll(`#n-${i}`);
+                let has = false;
+
+                els.forEach(el => {
+                    if (el && el.classList.contains('excluded')) {
+                        has = true;
+                    }
+                });
+
+                return has ? "1" : "0";
             }).join("");
         }
 
         function applyState(bits, isSync = true) {
             bits.split("").forEach((v, i) => {
-                const el = document.getElementById(`n-${i}`);
-                if (el) v === "1" ? el.classList.add('excluded') : el.classList.remove('excluded');
+                const els = document.querySelectorAll(`#n-${i}`);
+
+                els.forEach(el => {
+                    if (!el)
+                        return;
+
+                    if (v === "1") {
+                        el.classList.add('excluded');
+                    } else {
+                        el.classList.remove('excluded');
+                    }
+                });
             });
+
             if (isSync) syncStorage(bits);
             updateAllRegionCounts();
         }
@@ -471,7 +496,11 @@
 
         function toggleNode(idx) {
             recordHistory();
-            document.getElementById(`n-${idx}`).classList.toggle('excluded');
+            const els = document.querySelectorAll(`#n-${idx}`);
+            els.forEach(el => {
+                if (el)
+                    el.classList.toggle('excluded');
+            });
             syncStorage(getCurrentExcludedState());
             updateAllRegionCounts();
             recordHistory(); // 完成操作後紀錄
@@ -490,15 +519,15 @@
         }
 
         // --- 區域收合 ---
-        function toggleRegionCollapse(regionName, headerEl) {
-            const isCollapsed = headerEl.classList.toggle('collapsed');
+        function toggleRegionCollapse(regionName, collapsedEl) {
+            const isCollapsed = collapsedEl.classList.toggle('collapsed');
             setCookie(`collapse_${regionName}`, isCollapsed ? '1' : '0', 365);
         }
 
         let shouldCollapse = true;
         function setAllRegionsCollapse() {
             regionMap.forEach(reg => {
-                shouldCollapse ? reg.headerEl.classList.add('collapsed') : reg.headerEl.classList.remove('collapsed');
+                shouldCollapse ? reg.collapseEl.classList.add('collapsed') : reg.collapseEl.classList.remove('collapsed');
                 setCookie(`collapse_${reg.name}`, shouldCollapse ? '1' : '0', 365);
             });
             shouldCollapse = !shouldCollapse;
@@ -511,8 +540,10 @@
                     const el = document.getElementById(`n-${i}`);
                     if (el && !el.classList.contains('excluded')) done++;
                 }
-                done === 0 ? reg.headerEl.classList.add('completed') : reg.headerEl.classList.remove('completed');
-                const span = reg.headerEl.querySelector('.region-title');
+                done === 0 ? reg.collapseEl.classList.add('completed') : reg.collapseEl.classList.remove('completed');
+                done === 0 ? reg.gridEl.classList.add('completed') : reg.gridEl.classList.remove('completed');
+
+                const span = reg.collapseEl.querySelector('.region-title');
                 if (span) span.textContent = `${reg.name} ( ${done} / ${reg.count} )`;
             });
         }
@@ -538,6 +569,10 @@
             regionMap = [];
 
             RAW_DATA.forEach((reg) => {
+                const parent = document.createElement('div');
+                parent.className = 'region-block';
+                containerEl.appendChild(parent);
+
                 const isCollapsed = getCookie(`collapse_${reg.region}`) === '1';
                 const header = document.createElement('div');
                 header.className = `region-header ${isCollapsed ? 'collapsed' : ''}`;
@@ -551,7 +586,7 @@
                         <button class="btn-sm" onclick="setRegionState(${startIndex}, ${count}, true, event)">區域全關</button>
                     </div>`;
                 header.onclick = () => toggleRegionCollapse(reg.region, header);
-                containerEl.appendChild(header);
+                parent.appendChild(header);
 
                 const grid = document.createElement('div');
                 grid.className = 'monster-grid';
@@ -566,11 +601,14 @@
                     grid.appendChild(node);
                     itemOffset++;
                     if (item.newline === true) {
-                        const b = document.createElement('div'); b.className = 'grid-break'; grid.appendChild(b);
+                        const b = document.createElement('div');
+                        b.className = 'grid-break';
+                        b.id = `n-${idx}`;
+                        grid.appendChild(b);
                     }
                 });
-                containerEl.appendChild(grid);
-                regionMap.push({ headerEl: header, start: startIndex, count: count, name: reg.region });
+                parent.appendChild(grid);
+                regionMap.push({ containerEl: parent, collapseEl: header, gridEl: grid, start: startIndex, count: count, name: reg.region });
             });
 
             const m = getCookie('monster_mask');
