@@ -13,6 +13,7 @@
             --gold-completed: #bf943f3b;
             --light-gold: #FCF6BA;
             --text: #eee;
+            --gap: 0px 2px; /*目前還有gad導致換行後醜陋留白，下次再改*/
         }
 
         body {
@@ -152,11 +153,7 @@
         .monster-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 0px 2px;
-        }
-
-        .monster-grid.completed {
-            display: none;
+            gap: var(--gap);
         }
 
         .monster-node {
@@ -222,13 +219,18 @@
             grid-column: 1 / -1;
         }
 
-        body.hide-collected .monster-node.excluded {
+        body.hide-collected .excluded {
             display: none;
         }
 
         body.hide-completed .region-header.completed {
             display: none;
         }
+
+        body.hide-completed .monster-grid.completed {
+            display: none;
+        }
+
 
         #toast {
             position: fixed;
@@ -443,7 +445,7 @@
 
         function getCurrentExcludedState() {
             return flatRegistry.map((_, i) => {
-                const els = document.querySelectorAll(`#n-${i}`);
+                const els = document.querySelectorAll(`[data-card="n-${i}"]`);
                 let has = false;
 
                 els.forEach(el => {
@@ -458,7 +460,7 @@
 
         function applyState(bits, isSync = true) {
             bits.split("").forEach((v, i) => {
-                const els = document.querySelectorAll(`#n-${i}`);
+                const els = document.querySelectorAll(`[data-card="n-${i}"]`);
 
                 els.forEach(el => {
                     if (!el)
@@ -496,7 +498,7 @@
 
         function toggleNode(idx) {
             recordHistory();
-            const els = document.querySelectorAll(`#n-${idx}`);
+            const els = document.querySelectorAll(`[data-card="n-${idx}"]`);
             els.forEach(el => {
                 if (el)
                     el.classList.toggle('excluded');
@@ -510,7 +512,7 @@
             if (event) event.stopPropagation();
             recordHistory();
             for (let i = start; i < start + count; i++) {
-                const el = document.getElementById(`n-${i}`);
+                const el = document.querySelector(`[data-card="n-${i}"]`);
                 if (el) shouldExclude ? el.classList.add('excluded') : el.classList.remove('excluded');
             }
             syncStorage(getCurrentExcludedState());
@@ -537,7 +539,7 @@
             regionMap.forEach(reg => {
                 let done = 0;
                 for (let i = reg.start; i < reg.start + reg.count; i++) {
-                    const el = document.getElementById(`n-${i}`);
+                    const el = document.querySelector(`[data-card="n-${i}"]`);
                     if (el && !el.classList.contains('excluded')) done++;
                 }
                 done === 0 ? reg.collapseEl.classList.add('completed') : reg.collapseEl.classList.remove('completed');
@@ -595,7 +597,7 @@
                     flatRegistry.push(item);
                     const node = document.createElement('div');
                     node.className = 'monster-node';
-                    node.id = `n-${idx}`;
+                    node.dataset.card = `n-${idx}`;
                     node.innerHTML = `<img src="${item.img}" class="monster-img"><div class="monster-name">${item.name}</div>`;
                     node.onclick = () => toggleNode(idx);
                     grid.appendChild(node);
@@ -603,7 +605,7 @@
                     if (item.newline === true) {
                         const b = document.createElement('div');
                         b.className = 'grid-break';
-                        b.id = `n-${idx}`;
+                        //b.dataset.card = `n-${idx}`; 目前還有gad導致換行後醜陋留白，下次再改
                         grid.appendChild(b);
                     }
                 });
