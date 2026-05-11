@@ -13,31 +13,31 @@
             --gold-completed: #bf943f3b;
             --light-gold: #FCF6BA;
             --text: #eee;
-            --gap: 0px 2px; /*目前還有gad導致換行後醜陋留白，下次再改*/
+            --gap: 0px 2px;
+            /*目前還有gad導致換行後醜陋留白，下次再改*/
+        }
+
+        html,
+        body {
+            height: 100%;
         }
 
         body {
             background: var(--bg);
             color: var(--text);
             font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            margin: 0;
-            padding: 20px;
             text-align: center;
             user-select: none;
-            padding-bottom: 80px;
+            display: flex;
+            flex-direction: column;
+
+            max-width: 680px;
+            margin: 0 auto;
+
+            overflow: hidden;
         }
 
-        h1,
-        .mask-manager,
-        .controls,
-        .hint,
-        .container {
-            max-width: 760px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        h1 {
+        .header-title {
             font-size: 2.5rem;
             font-weight: 900;
             background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
@@ -47,8 +47,41 @@
             -webkit-text-fill-color: transparent;
             animation: shine 3s linear infinite;
             text-shadow: 0 0 30px rgba(251, 245, 183, 0.3);
-            margin: 0 0 10px 0;
-            display: inline-block;
+            margin: 10px 0 10px 0;
+        }
+
+        .mask-manager,
+        .hint,
+        .controls {
+            flex: 0 0 auto;
+        }
+
+        .container {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            transition: background 0.2s;
+        }
+
+        .container::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-on);
+        }
+
+        .container::-webkit-scrollbar-thumb:active {
+            background: var(--gold);
         }
 
         @keyframes shine {
@@ -57,10 +90,23 @@
             }
         }
 
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 4px;
+            gap: 10px;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #888;
+        }
+
         .mask-manager {
             background: #222;
             border: 1px solid #444;
             padding: 15px;
+            margin-top: 10px;
             margin-bottom: 10px;
             border-radius: 8px;
             display: flex;
@@ -231,7 +277,6 @@
             display: none;
         }
 
-
         #toast {
             position: fixed;
             bottom: 20px;
@@ -257,19 +302,6 @@
             font-weight: bold;
         }
 
-        .hint {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 10px;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 30px;
-            margin-bottom: 20px;
-        }
 
         .btn {
             background: #222;
@@ -345,28 +377,8 @@
 
 <body>
 
-    <h1>
+    <div class="header-title">
         技術谷怪物蒐集
-    </h1>
-
-    <div class="floating-gif">
-        <img src="../../images/stand.gif"">
-        <div class=" tooltip">Made By 🩷 砂兔
-    </div>
-    </div>
-
-    <div class="mask-manager">
-        <div style="font-size: 24px; color: var(--gold);">蒐集存檔碼</div>
-        <div style="font-size: 16px; color: #AAA; ">( 存檔碼只會存在本地瀏覽器中不會跨裝置，請隨時複製儲存 )</div>
-        <div class="mask-input-group">
-            <input type="text" id="maskInput" class="mask-input" placeholder="代碼自動更新中...">
-            <button class="btn" onclick="copyMask()" style="padding: 5px 12px;">複製</button>
-            <button class="btn" onclick="loadManualMask()" style="padding: 5px 12px;">載入</button>
-        </div>
-    </div>
-
-    <div class="hint">
-        [ <b>Ctrl+ Z</b> 復原 ] [ <b>Ctrl+ Y</b> 重做 ] [ <b>Ctrl+ C</b> 快速複製存檔代碼 ]<br>
     </div>
 
     <div class="controls">
@@ -376,7 +388,27 @@
         <button class="btn" id="hideCompletedBtn" onclick="toggleHideCompleted()">隱藏完成區域</button>
     </div>
 
+    <div class="hint">
+        [ <b>Ctrl+ Z</b> 復原 ] [ <b>Ctrl+ Y</b> 重做 ] [ <b>Ctrl+ C</b> 快速複製存檔代碼 ]<br>
+    </div>
+
     <div id="container" class="container"></div>
+
+    <div class="mask-manager">
+        <div style="font-size: 24px; color: var(--gold);">蒐集存檔碼</div>
+        <div class="mask-input-group">
+            <input type="text" id="maskInput" class="mask-input" placeholder="代碼自動更新中...">
+            <button class="btn" onclick="copyMask()" style="padding: 5px 12px;">複製</button>
+            <button class="btn" onclick="loadManualMask()" style="padding: 5px 12px;">載入</button>
+        </div>
+        <div style="font-size: 16px; color: #AAA; ">( 存檔碼只會存在本地瀏覽器中不會跨裝置，請隨時複製儲存 )</div>
+    </div>
+
+    <div class="floating-gif">
+        <img src="../../images/stand.gif"">
+        <div class=" tooltip">Made By 🩷 砂兔
+    </div>
+    </div>
 
     <div id="toast">
         <div class="toast-title">已儲存到本地瀏覽器</div>
