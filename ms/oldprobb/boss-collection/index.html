@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>怪物蒐集</title>
+    <title>技術谷野外魔王蒐集</title>
     <link rel="stylesheet" href="../style.css">
     <style>
         :root {
@@ -17,6 +17,7 @@
             --gap: 0px 2px;
             --card-size: 80px;
             --container-margin-x: 0px;
+            --container-margin-x: 140px;
             /*目前還有gad導致換行後醜陋留白，下次再改*/
         }
     </style>
@@ -25,7 +26,7 @@
 <body>
 
     <div class="header-title">
-        技術谷怪物蒐集
+        技術谷野外魔王蒐集
     </div>
 
     <div class="mask-manager">
@@ -39,11 +40,11 @@
     </div>
 
     <div class="controls">
-        <button class="btn" onclick="setAllRegionsCollapse()">展開 / 收合</button>
-        <button class="btn" id="newlineBtn" onclick="toggleNewline()">分類模式</button>
-        <button class="btn" id="hideCollectedBtn" onclick="toggleHideCollected()">隱藏已蒐集</button>
-        <button class="btn" id="hideCompletedBtn" onclick="toggleHideCompleted()">隱藏完成區域</button>
-        <button class="btn" id="jumpToBossBtn" onclick="jumpToBossCollection()">
+        <button class="btn hidden" onclick="setAllRegionsCollapse()">展開 / 收合</button>
+        <button class="btn hidden" id="newlineBtn" onclick="toggleNewline()">分類模式</button>
+        <button class="btn hidden" id="hideCollectedBtn" onclick="toggleHideCollected()">隱藏已蒐集</button>
+        <button class="btn hidden" id="hideCompletedBtn" onclick="toggleHideCompleted()">隱藏完成區域</button>
+        <button class="btn" id="jumpToMonsterBtn" onclick="jumpToMonsterCollection()">
             怪物蒐集
             <img class="btn-icon" src="../../images/External.png" alt="icon">
         </button>
@@ -64,7 +65,6 @@
     </div>
 
     <script type="text/javascript" src="database.js"></script>
-    <script type="text/javascript" src="../utils.js"></script>
 
     <script>
         let flatRegistry = [];
@@ -162,7 +162,7 @@
 
         function syncStorage(bits) {
             const compressed = pack(bits.split(""));
-            setCookie('monster_mask', compressed, 365);
+            setCookie('boss_mask', compressed, 365);
             maskInput.value = compressed;
             clearTimeout(toastTimer);
             toast.classList.add('show');
@@ -236,6 +236,7 @@
         function init() {
             if (typeof RAW_DATA === 'undefined') return;
 
+            /*
             const isNewline = getCookie('monster_newline') === '1';
             document.body.classList.toggle('enable-newline', isNewline);
             updateNewlineUI(isNewline);
@@ -247,6 +248,7 @@
             const isHideCompleted = getCookie('monster_hide_completed') === '1';
             document.body.classList.toggle('hide-completed', isHideCompleted);
             updateHideCompletedUI(isHideCompleted);
+            */
 
             let itemOffset = 0;
             containerEl.innerHTML = '';
@@ -295,7 +297,7 @@
                 regionMap.push({ containerEl: parent, collapseEl: header, gridEl: grid, start: startIndex, count: count, name: reg.region });
             });
 
-            const m = getCookie('monster_mask');
+            const m = getCookie('boss_mask');
             const initialState = unpack(m, flatRegistry.length);
             applyState(initialState, false);
             historyStack.push(initialState);
@@ -342,8 +344,8 @@
             setCookie('monster_hide_completed', isHidden ? '1' : '0', 365);
         }
 
-        function jumpToBossCollection() {
-            window.location.href = '../boss-collection/index.html';
+        function jumpToMonsterCollection() {
+            window.location.href = '../monster-collection/index.html';
         }
 
         function updateHideUI(isHidden) {
