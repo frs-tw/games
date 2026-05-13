@@ -20,8 +20,6 @@
      overflow: hidden;
  }
 
-
-
  .btn {
      display: inline-flex;
      align-items: center;
@@ -336,15 +334,15 @@
      cursor: pointer;
      height: auto;
      width: 100%;
-     content: url("../../images/stand.gif");
+     content: url("../images/stand.gif");
  }
 
  .floating-gif img:hover {
-     content: url("../../images/move.gif");
+     content: url("../images/move.gif");
  }
 
  .floating-gif img:active {
-     content: url("../../images/hit1.gif");
+     content: url("../images/hit1.gif");
  }
 
  /* 訊息框 */
