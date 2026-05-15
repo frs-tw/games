@@ -338,19 +338,22 @@
  }
 
  .floating-gif img:hover {
+     width: 116%;
+     transform: translateX(-5%) translateY(10%);
      content: url("../images/move.gif");
  }
 
  .floating-gif img:active {
+     width: 96%;
+     transform: translateX(-5%) translateY(-13%);
      content: url("../images/hit1.gif");
  }
 
  /* 訊息框 */
  .tooltip {
      position: absolute;
-     bottom: 100%;
-     right: 0;
-     margin-bottom: 8px;
+     bottom: 80px;
+     right: 0px;
      padding: 6px 10px;
      background: rgba(0, 0, 0, 0.8);
      color: #fff;
@@ -358,10 +361,11 @@
      border-radius: 6px;
      white-space: nowrap;
 
-     opacity: 0;
-     transform: translateY(5px);
      transition: 0.2s;
      pointer-events: none;
+
+     opacity: 0;
+     transform: translateY(5px);
  }
 
  .floating-gif:hover .tooltip {
