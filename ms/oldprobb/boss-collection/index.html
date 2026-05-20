@@ -42,7 +42,10 @@
 
     <div id="container" class="container"></div>
 
-    <div class="hint"> [<b>Ctrl+ Z</b>] 復原 ． [<b>Ctrl+ Y</b>] 重做 ． [<b>Ctrl+ C</b>] 快速複製存檔代碼 ． Made By 🍀 砂兔 ． <a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSefslc9qtMig30-QggCnDCR4CoJg6K1xlhdixMk9nZIncBx-g/viewform">給作者的話 <img class="btn-icon" src="../../images/External.png" alt="icon"></a> </div>
+    <div class="hint"> [<b>Ctrl+ Z</b>] 復原 ． [<b>Ctrl+ Y</b>] 重做 ． [<b>Ctrl+ C</b>] 快速複製存檔代碼 ． Made By 🍀 砂兔 ． <a
+            target="_blank"
+            href="https://docs.google.com/forms/d/e/1FAIpQLSefslc9qtMig30-QggCnDCR4CoJg6K1xlhdixMk9nZIncBx-g/viewform">給作者的話
+            <img class="btn-icon" src="../../images/External.png" alt="icon"></a> </div>
 
     <div id="toast">
         <div class="toast-title">已儲存到本地瀏覽器</div>
@@ -199,11 +202,11 @@
             setCookie(`collapse_${regionName}`, isCollapsed ? '1' : '0', 365);
         }
 
-
         let shouldCollapse = true;
         function setAllRegionsCollapse() {
             regionMap.forEach(reg => {
                 shouldCollapse ? reg.collapseEl.classList.add('collapsed') : reg.collapseEl.classList.remove('collapsed');
+                shouldCollapse ? reg.containerEl.classList.add('collapsed') : reg.containerEl.classList.remove('collapsed');
                 setCookie(`collapse_${reg.name}`, shouldCollapse ? '1' : '0', 365);
             });
             shouldCollapse = !shouldCollapse;
@@ -218,6 +221,7 @@
                 }
                 done === 0 ? reg.collapseEl.classList.add('completed') : reg.collapseEl.classList.remove('completed');
                 done === 0 ? reg.gridEl.classList.add('completed') : reg.gridEl.classList.remove('completed');
+                done === 0 ? reg.containerEl.classList.add('completed') : reg.containerEl.classList.remove('completed');
 
                 const span = reg.collapseEl.querySelector('.region-title');
                 if (span) span.textContent = `${reg.name} ( ${done} / ${reg.count} )`;

@@ -216,6 +216,10 @@ a:active {
     margin-bottom: 8px;
 }
 
+.region-block.completed {
+    margin-bottom: 8px;
+}
+
 .region-controls {
     display: flex;
     gap: 8px;
