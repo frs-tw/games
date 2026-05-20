@@ -8,16 +8,7 @@
     <link rel="stylesheet" href="../style.css">
     <style>
         :root {
-            --bg: #0f0f0f;
-            --gold: #BF953F;
-            --gold-on: #BF953F8C;
-            --gold-completed: #bf943f3b;
-            --light-gold: #FCF6BA;
-            --text: #eee;
-            --gap: 0px 2px;
-            --card-size: 80px;
             --container-margin-x: 0px;
-            /*目前還有gad導致換行後醜陋留白，下次再改*/
         }
     </style>
 </head>
@@ -51,7 +42,10 @@
 
     <div id="container" class="container"></div>
 
-    <div class="hint"> [<b>Ctrl+ Z</b>] 復原 [<b>Ctrl+ Y</b>] 重做 [<b>Ctrl+ C</b>] 快速複製存檔代碼 ． Made By 🩷 砂兔<br> </div>
+    <div class="hint"> [<b>Ctrl+ Z</b>] 復原 ． [<b>Ctrl+ Y</b>] 重做 ． [<b>Ctrl+ C</b>] 快速複製存檔代碼 ． Made By 🍀 砂兔 ． <a
+            target="_blank"
+            href="https://docs.google.com/forms/d/e/1FAIpQLSefslc9qtMig30-QggCnDCR4CoJg6K1xlhdixMk9nZIncBx-g/viewform">給作者的話
+            <img class="btn-icon" src="../../images/External.png" alt="icon"></a> </div>
 
     <div id="toast">
         <div class="toast-title">已儲存到本地瀏覽器</div>
@@ -59,7 +53,7 @@
 
     <div class="floating-gif">
         <img src="../../images/stand.gif">
-        <div class="tooltip">維多周圍區域完成拉🌟<br>只剩下 5 個區域就完成全蒐集了！！<br><br>星光★卡 好難刷阿阿 🫠<br>收收收<span style="color: #ffe1a4;"> ★咖啡機 ★紅耳機 ★化妝台</span><br>em 砂兔
+        <div class="tooltip">砂兔我的<span style="color: #ffda90;">星光</span>完成拉🌟<br>全蒐集就剩下<br><b><span style="color: #ffda90;">天空</span>、<span style="color: #ffda90;">玩具</span>、<span style="color: #ffda90;">水世界</span>、<span style="color: #ffda90;">武陵</span></b>！
         </div>
     </div>
 
@@ -202,8 +196,9 @@
         }
 
         // --- 區域收合 ---
-        function toggleRegionCollapse(regionName, collapsedEl) {
+        function toggleRegionCollapse(regionName, collapsedEl, collapsedRootEl) {
             const isCollapsed = collapsedEl.classList.toggle('collapsed');
+            collapsedRootEl.classList.toggle('collapsed', isCollapsed);
             setCookie(`collapse_${regionName}`, isCollapsed ? '1' : '0', 365);
         }
 
@@ -252,11 +247,12 @@
             regionMap = [];
 
             RAW_DATA.forEach((reg) => {
+                const isCollapsed = getCookie(`collapse_${reg.region}`) === '1';
+
                 const parent = document.createElement('div');
-                parent.className = 'region-block';
+                parent.className = `region-block ${isCollapsed ? 'collapsed' : ''}`;
                 containerEl.appendChild(parent);
 
-                const isCollapsed = getCookie(`collapse_${reg.region}`) === '1';
                 const header = document.createElement('div');
                 header.className = `region-header ${isCollapsed ? 'collapsed' : ''}`;
                 const startIndex = itemOffset;
@@ -268,7 +264,7 @@
                         <button class="btn-sm" onclick="setRegionState(${startIndex}, ${count}, false, event)">區域全開</button>
                         <button class="btn-sm" onclick="setRegionState(${startIndex}, ${count}, true, event)">區域全關</button>
                     </div>`;
-                header.onclick = () => toggleRegionCollapse(reg.region, header);
+                header.onclick = () => toggleRegionCollapse(reg.region, header, parent);
                 parent.appendChild(header);
 
                 const grid = document.createElement('div');
