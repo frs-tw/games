@@ -20,13 +20,18 @@
     </div>
 
     <div class="mask-manager">
-        <div style="font-size: 24px; color: var(--gold);">蒐集存檔碼</div>
-        <div class="mask-input-group">
-            <input type="text" id="maskInput" class="mask-input" placeholder="代碼自動更新中...">
-            <button class="btn" onclick="copyMask()" style="padding: 5px 12px;">複製</button>
-            <button class="btn" onclick="loadManualMask()" style="padding: 5px 12px;">載入</button>
+        <div class="mask-header" onclick="toggleMaskManager(event)" style="cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span class="mask-toggle-icon">▶</span>
+            <div style="font-size: 24px; color: var(--gold);">蒐集存檔碼</div>
         </div>
-        <div style="font-size: 16px; color: #AAA; ">( 存檔碼只會存在本地瀏覽器中不會跨裝置，請隨時複製儲存 )</div>
+        <div class="mask-content">
+            <div class="mask-input-group">
+                <input type="text" id="maskInput" class="mask-input" placeholder="...">
+                <button class="btn" onclick="copyMask()" style="padding: 5px 12px;">複製</button>
+                <button class="btn" onclick="loadManualMask()" style="padding: 5px 12px;">載入</button>
+            </div>
+            <div style="font-size: 16px; color: #AAA; ">存檔碼只會存在本地瀏覽器中，若怕遺失請隨時複製儲存。</div>
+        </div>
     </div>
 
     <div class="controls">
@@ -231,9 +236,22 @@
             });
         }
 
+        // --- 蒐集存檔碼摺疊控制 ---
+        function toggleMaskManager(event) {
+            event.stopPropagation();
+            const maskManager = document.querySelector('.mask-manager');
+            const isCollapsed = maskManager.classList.toggle('collapsed');
+            setCookie('mask_collapsed', isCollapsed ? '1' : '0', 365);
+        }
+
         // --- 初始化 ---
         function init() {
             if (typeof RAW_DATA === 'undefined') return;
+
+            const isMaskCollapsed = getCookie('mask_collapsed') === '1';
+            if (isMaskCollapsed) {
+                document.querySelector('.mask-manager').classList.add('collapsed');
+            }
 
             const isNewline = getCookie('monster_newline') === '1';
             document.body.classList.toggle('enable-newline', isNewline);
